@@ -1,0 +1,74 @@
+name: 'Release: prepare'
+description: 'Bump version, commit and tag locally. No push. Run before publishing to a package registry.'
+
+inputs:
+  bump:
+    description: 'Version bump type: patch, minor or major'
+    required: true
+  version-format:
+    description: 'Determines which bump script runs. Add new formats by dropping scripts/bump-<format>.sh.'
+    required: false
+    default: 'npm'
+  extra-paths:
+    description: 'Additional paths to stage in the release commit, one per line'
+    required: false
+    default: ''
+  app-id:
+    description: 'fin-releases App ID (org variable FIN_RELEASES_APP_ID)'
+    required: true
+  app-private-key:
+    description: 'fin-releases App private key, PEM (org secret FIN_RELEASES_PRIVATE_KEY)'
+    required: true
+  tag-prefix:
+    description: 'Prefix prepended to the version to form the tag'
+    required: false
+    default: 'v'
+
+outputs:
+  version:
+    description: 'The new version (e.g. 1.2.3)'
+    value: ${{ steps.bump.outputs.version }}
+  tag:
+    description: 'The tag created locally, ready to push (e.g. v1.2.3)'
+    value: ${{ steps.bump.outputs.tag }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Generate App token
+      id: app-token
+      uses: actions/create-github-app-token@v2
+      with:
+        app-id: ${{ inputs.app-id }}
+        private-key: ${{ inputs.app-private-key }}
+
+    - name: Validate inputs
+      shell: bash
+      env:
+        BUMP: ${{ inputs.bump }}
+        VERSION_FORMAT: ${{ inputs.version-format }}
+        ACTION_PATH: ${{ github.action_path }}
+      run: ${{ github.action_path }}/scripts/validate.sh
+
+    - name: Bump version
+      id: bump
+      shell: bash
+      env:
+        BUMP: ${{ inputs.bump }}
+        TAG_PREFIX: ${{ inputs.tag-prefix }}
+      run: ${{ github.action_path }}/scripts/bump-${{ inputs.version-format }}.sh
+
+    - name: Verify tag does not exist on remote
+      shell: bash
+      env:
+        TAG: ${{ steps.bump.outputs.tag }}
+      run: ${{ github.action_path }}/scripts/verify-tag.sh
+
+    - name: Commit and tag locally
+      shell: bash
+      env:
+        TOKEN: ${{ steps.app-token.outputs.token }}
+        APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+        EXTRA_PATHS: ${{ inputs.extra-paths }}
+        TAG: ${{ steps.bump.outputs.tag }}
+      run: ${{ github.action_path }}/scripts/commit-and-tag.sh

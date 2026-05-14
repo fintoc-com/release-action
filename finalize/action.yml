@@ -1,0 +1,48 @@
+name: 'Release: finalize'
+description: 'Push the commit and tag prepared by release/prepare, and create the GitHub Release. Run after the package has been published to its registry.'
+
+inputs:
+  tag:
+    description: 'Tag to push and release (output `tag` from release/prepare)'
+    required: true
+  release-notes:
+    description: 'Body for the GitHub Release (markdown). Empty means no body.'
+    required: false
+    default: ''
+  app-id:
+    description: 'fin-releases App ID (org variable FIN_RELEASES_APP_ID)'
+    required: true
+  app-private-key:
+    description: 'fin-releases App private key, PEM (org secret FIN_RELEASES_PRIVATE_KEY)'
+    required: true
+
+outputs:
+  release-url:
+    description: 'URL of the GitHub Release'
+    value: ${{ steps.release.outputs.url }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Generate App token
+      id: app-token
+      uses: actions/create-github-app-token@v2
+      with:
+        app-id: ${{ inputs.app-id }}
+        private-key: ${{ inputs.app-private-key }}
+
+    - name: Push commit and tag
+      shell: bash
+      env:
+        TOKEN: ${{ steps.app-token.outputs.token }}
+        TAG: ${{ inputs.tag }}
+      run: ${{ github.action_path }}/scripts/push.sh
+
+    - name: Create GitHub Release
+      id: release
+      shell: bash
+      env:
+        GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        TAG: ${{ inputs.tag }}
+        RELEASE_NOTES: ${{ inputs.release-notes }}
+      run: ${{ github.action_path }}/scripts/create-release.sh
