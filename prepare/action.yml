@@ -6,13 +6,8 @@ inputs:
     description: 'Version bump type: patch, minor or major'
     required: true
   version-format:
-    description: 'Determines which bump script runs. Add new formats by dropping scripts/bump-<format>.sh.'
-    required: false
-    default: 'npm'
-  extra-paths:
-    description: 'Additional paths to stage in the release commit, one per line'
-    required: false
-    default: ''
+    description: 'Selects which bump script runs. Provided by scripts/bump-<format>.sh (today: npm).'
+    required: true
   app-id:
     description: 'fin-releases App ID (org variable FIN_RELEASES_APP_ID)'
     required: true
@@ -20,9 +15,8 @@ inputs:
     description: 'fin-releases App private key, PEM (org secret FIN_RELEASES_PRIVATE_KEY)'
     required: true
   tag-prefix:
-    description: 'Prefix prepended to the version to form the tag'
-    required: false
-    default: 'v'
+    description: "Prefix prepended to the version to form the tag (e.g. 'v' for v1.2.3, '' for 1.2.3)"
+    required: true
 
 outputs:
   version:
@@ -69,6 +63,5 @@ runs:
       env:
         TOKEN: ${{ steps.app-token.outputs.token }}
         APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
-        EXTRA_PATHS: ${{ inputs.extra-paths }}
         TAG: ${{ steps.bump.outputs.tag }}
       run: ${{ github.action_path }}/scripts/commit-and-tag.sh

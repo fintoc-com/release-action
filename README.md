@@ -30,17 +30,18 @@ jobs:
       - uses: actions/checkout@v4
       # ... install + build + test ...
 
-      - uses: fintoc-com/release-action/prepare@v1
+      - uses: fintoc-com/release-action/prepare@v2
         id: prep
         with:
           bump: ${{ inputs.bump }}
           version-format: npm
+          tag-prefix: v
           app-id: ${{ vars.FIN_RELEASES_APP_ID }}
           app-private-key: ${{ secrets.FIN_RELEASES_PRIVATE_KEY }}
 
       - run: npm publish
 
-      - uses: fintoc-com/release-action/finalize@v1
+      - uses: fintoc-com/release-action/finalize@v2
         with:
           tag: ${{ steps.prep.outputs.tag }}
           release-notes: ${{ inputs.release-notes }}
@@ -54,14 +55,15 @@ jobs:
 
 Validates inputs, bumps the version file, commits and tags locally as `fin-releases[bot]`. Does **not** push.
 
-| Input | Required | Default | Notes |
-|---|---|---|---|
-| `bump` | yes | — | `patch`, `minor` or `major` |
-| `version-format` | no | `npm` | Selects `prepare/scripts/bump-<format>.sh`. Today: `npm`. |
-| `extra-paths` | no | `''` | Extra files to stage in the release commit (one per line) |
-| `app-id` | yes | — | `fin-releases` App ID |
-| `app-private-key` | yes | — | `fin-releases` App private key (PEM) |
-| `tag-prefix` | no | `v` | Prepended to the version to form the tag |
+All inputs are required — there are no defaults, so every consumer states its intent explicitly.
+
+| Input | Notes |
+|---|---|
+| `bump` | `patch`, `minor` or `major` |
+| `version-format` | Selects `prepare/scripts/bump-<format>.sh`. Today only `npm`. |
+| `tag-prefix` | Prepended to the version. Use `v` for `v1.2.3`, `''` to keep the version as-is. |
+| `app-id` | `fin-releases` App ID |
+| `app-private-key` | `fin-releases` App private key (PEM) |
 
 Outputs:
 
@@ -96,6 +98,10 @@ Drop `prepare/scripts/bump-<format>.sh`. The script receives env `BUMP`, `TAG_PR
 3. Write `version` and `tag` to `$GITHUB_OUTPUT`.
 
 Consumers then pass `version-format: <format>` to `prepare`.
+
+## Versioning
+
+Major tags (`v1`, `v2`, ...) are moving and follow the latest minor/patch on their major. Pin to a specific `vX.Y.Z` if you need full reproducibility.
 
 ## License
 
