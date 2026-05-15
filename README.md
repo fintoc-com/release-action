@@ -60,7 +60,7 @@ All inputs are required — there are no defaults, so every consumer states its 
 | Input | Notes |
 |---|---|
 | `bump` | `patch`, `minor` or `major` |
-| `version-format` | Selects `prepare/scripts/bump-<format>.sh`. Today only `npm`. |
+| `version-format` | Selects `prepare/scripts/bump-<format>.sh`. Supported: `npm`, `poetry`. |
 | `tag-prefix` | Prepended to the version. Use `v` for `v1.2.3`, `''` to keep the version as-is. |
 | `app-id` | `fin-releases` App ID |
 | `app-private-key` | `fin-releases` App private key (PEM) |
