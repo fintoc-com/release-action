@@ -1,6 +1,6 @@
 # release-action
 
-Composite actions used by Fintoc SDKs to publish releases through the `fin-releases` GitHub App. Splits a release into two halves so a publish step can run between them — if the publish fails, nothing has been pushed to the remote yet.
+Composite actions used by Fintoc SDKs to publish releases
 
 ## Usage
 
