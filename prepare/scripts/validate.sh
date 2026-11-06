@@ -2,12 +2,17 @@
 # Validate inputs before running the rest of prepare. Fails fast with a
 # clear message if anything is off.
 #
-# Required env: BUMP, VERSION_FORMAT, ACTION_PATH, TAG_PREFIX
+# Required env: BUMP, VERSION_FORMAT, ACTION_PATH, TAG_PREFIX, PUSH
 set -euo pipefail
 
 case "$BUMP" in
   patch|minor|major) ;;
   *) echo "::error::Invalid bump '$BUMP' (must be patch, minor or major)"; exit 1 ;;
+esac
+
+case "$PUSH" in
+  true|false) ;;
+  *) echo "::error::Invalid push '$PUSH' (must be true or false)"; exit 1 ;;
 esac
 
 # version-format selects a filename under scripts/; constrain it to a
