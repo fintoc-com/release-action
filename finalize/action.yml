@@ -1,5 +1,5 @@
 name: 'Release: finalize'
-description: 'Push the commit and tag prepared by release/prepare, and create the GitHub Release. Run after the package has been published to its registry.'
+description: 'Push the commit and tag prepared by release/prepare (skipped if prepare already pushed them), and create the GitHub Release. Run after the package has been published to its registry.'
 
 inputs:
   tag:
@@ -38,7 +38,7 @@ runs:
       env:
         TOKEN: ${{ steps.app-token.outputs.token }}
         TAG: ${{ inputs.tag }}
-      run: ${{ github.action_path }}/scripts/push.sh
+      run: ${{ github.action_path }}/../shared/push.sh
 
     - name: Create GitHub Release
       id: release
