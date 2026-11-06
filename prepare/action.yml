@@ -1,5 +1,5 @@
 name: 'Release: prepare'
-description: 'Bump version, commit and tag locally. No push. Run before publishing to a package registry.'
+description: 'Bump version, commit and tag locally, and optionally push both atomically. Run before publishing to a package registry.'
 
 inputs:
   bump:
@@ -17,13 +17,17 @@ inputs:
   tag-prefix:
     description: "Prefix prepended to the version to form the tag (e.g. 'v' for v1.2.3, '' for 1.2.3)"
     required: true
+  push:
+    description: "'true' pushes the commit and tag atomically before publishing, so a moved branch fails the release with nothing published. 'false' leaves the push to release/finalize."
+    required: false
+    default: 'false'
 
 outputs:
   version:
     description: 'The new version (e.g. 1.2.3)'
     value: ${{ steps.bump.outputs.version }}
   tag:
-    description: 'The tag created locally, ready to push (e.g. v1.2.3)'
+    description: "The release tag (e.g. v1.2.3). Already on the remote when push is 'true'."
     value: ${{ steps.bump.outputs.tag }}
 
 runs:
@@ -44,6 +48,7 @@ runs:
         BUMP: ${{ inputs.bump }}
         VERSION_FORMAT: ${{ inputs.version-format }}
         TAG_PREFIX: ${{ inputs.tag-prefix }}
+        PUSH: ${{ inputs.push }}
         ACTION_PATH: ${{ github.action_path }}
       run: ${{ github.action_path }}/scripts/validate.sh
 
@@ -70,3 +75,20 @@ runs:
         APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
         TAG: ${{ steps.bump.outputs.tag }}
       run: ${{ github.action_path }}/scripts/commit-and-tag.sh
+
+    - name: Generate App token for push
+      id: push-token
+      if: inputs.push == 'true'
+      uses: actions/create-github-app-token@v2
+      with:
+        app-id: ${{ inputs.app-id }}
+        private-key: ${{ inputs.app-private-key }}
+        permission-contents: write
+
+    - name: Push commit and tag atomically
+      if: inputs.push == 'true'
+      shell: bash
+      env:
+        TOKEN: ${{ steps.push-token.outputs.token }}
+        TAG: ${{ steps.bump.outputs.tag }}
+      run: ${{ github.action_path }}/../shared/push.sh

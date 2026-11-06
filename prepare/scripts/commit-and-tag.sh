@@ -16,5 +16,5 @@ if git diff --cached --quiet; then
 fi
 
 git commit -m "release: $TAG"
-# Annotated tag: `git push --follow-tags` only pushes annotated tags.
+# Annotated tag: push.sh compares tag objects to detect an already-pushed release.
 git tag -a "$TAG" -m "$TAG"
