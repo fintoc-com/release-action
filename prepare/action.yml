@@ -39,8 +39,7 @@ runs:
       with:
         app-id: ${{ inputs.app-id }}
         private-key: ${{ inputs.app-private-key }}
-        permissions: |
-          metadata: read
+        permission-metadata: read
 
     - name: Validate inputs
       shell: bash

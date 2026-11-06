@@ -30,8 +30,7 @@ runs:
       with:
         app-id: ${{ inputs.app-id }}
         private-key: ${{ inputs.app-private-key }}
-        permissions: |
-          contents: write
+        permission-contents: write
 
     - name: Push commit and tag
       shell: bash
